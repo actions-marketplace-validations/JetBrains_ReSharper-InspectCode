@@ -27,19 +27,23 @@ jobs:
           submodules: recursive
 
       - name: Annotate
-        uses: derigel23/ReSharper-InspectCode@516f3a14d72c8666911b8e2e1498441a93b2a222
+        # You may pin to the exact commit or the version.
+        uses: JetBrains/ReSharper-InspectCode@v0.11
         with:
           solution: ./YourSolution.sln
+
+    permissions:
+      security-events: write
 ```
 
 ## Configuration
 
 Use [`with`](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswith) to define any action parameters:
-
 ```yaml
 with:
-  tools-version: 2023.2-eap03
+  tool-version: 2025.2.3
 ```
+You can use GitHub Workflow editor to get a list of all supported inputs with descriptions. 
 |Name                     |Description                                                                                                                                                                               |Default           |
 |-------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|
 |`settings`               |Path to the file to use custom settings from (default: Use R#'s solution shared settings if exists)                                                                                       |                  |
@@ -62,7 +66,7 @@ with:
 |`toolset-path`           |MsBuild toolset (exe/dll) path. Example: --toolset-path=/usr/local/msbuild/bin/current/MSBuild.exe                                                                                        |                  |
 |`mono`                   |Mono path. Empty to ignore Mono. Not specified for autodetect. Example: --mono=/Library/Frameworks/Mono.framework/Versions/Current/bin/mono                                               |                  |
 |`dotnetcore`             |.NET Core path. Empty to ignore .NET Core. Not specified for autodetect. Example: --dotnetcore=/usr/local/share/dotnet/dotnet                                                             |                  |
-|`dotnetcoresdk`          |.NET Core SDK version. Example: --dotnetcoresdk=3.0.100                                                                                                                                   |                  |
+|`dotnetcoresdk`          |.NET Core SDK version. Example: --dotnetcoresdk=8.0.100                                                                                                                                   |                  |
 |`disable-settings-layers`|Disable specified settings layers. Possible values: GlobalAll, GlobalPerProduct, SolutionShared, SolutionPersonal, ProjectShared, ProjectPersonal                                         |                  |
 |`no-buildin-settings`    |Suppress global, solution and project settings profile usage. Alias for --disable-settings-layers:GlobalAll;GlobalPerProduct;SolutionShared;SolutionPersonal;ProjectShared;ProjectPersonal|False             |
 |`caches-home`            |Path to the directory where produced caches will be stored                                                                                                                                |                  |
@@ -75,8 +79,5 @@ with:
 |`no-build`               |Do not build solution before processing                                                                                                                                                   |False             |
 |`build`                  |Build solution before processing                                                                                                                                                          |True              |
 |`target`                 |MsBuild target to execute before processing.                                                                                                                                              |Build             |
-|`telemetry-optout`       |Opt out from telemetry                                                                                                                                                                    |                  |
 |`solution`               |Solution file                                                                                                                                                                             |                  |
-|`tool-version`           |Tool Version                                                                                                                                                                              |2023.2-EAP5D      |
-
-You can use GitHub Workflow editor to get a list of all supported inputs with descriptions. 
+|`tool-version`           |Tool Version                                                                                                                                                                              |2025.2.3          |
