@@ -10,6 +10,9 @@ inputs:
   format:
     description: Write inspections report in specified format [Xml, Html, Text, Sarif]
     default: "Sarif"
+  upload-sarif:
+    description: Upload SARIF report to GitHub code scanning
+    default: "true"
   jobs:
     description: Run up to N jobs in parallel. 0 means as many as possible
     default: "0"
@@ -86,18 +89,29 @@ inputs:
     description: Solution file
   tool-version:
     description: Tool Version
-    default: "2025.3.3"
+    default: "2026.1.0.1"
+  dotnet-version:
+    description: .NET SDK version used to install and run ReSharper command line tools
+    default: "10.x"
+outputs:
+  report-file:
+    description: Path to the generated inspection report file
+    value: ${{ steps.inspectcode.outputs.report-file }}
+  report-format:
+    description: Output format used for the inspection report
+    value: ${{ steps.inspectcode.outputs.report-format }}
 runs:
   using: composite
   steps:
   - name: Setup .NET
-    uses: actions/setup-dotnet@v5
+    uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
     with:
       dotnet-version: ${{ inputs.dotnet-version }}
   - name: Install ReSharper command line tools
     shell: bash
     run: dotnet tool install JetBrains.ReSharper.GlobalTools --global --version ${{ inputs.tool-version }}
   - name: Inspect code with ReSharper
+    id: inspectcode
     shell: pwsh
     env:
       INPUT_settings: ${{ inputs.settings }}
@@ -133,13 +147,32 @@ runs:
       INPUT_no-build: ${{ inputs.no-build }}
       INPUT_build: ${{ inputs.build }}
       INPUT_target: ${{ inputs.target }}
+      INPUT_solution: ${{ inputs.solution }}
     run: |-
-      $command = "jb inspectcode ${{ inputs.solution }}"
-      dir env:INPUT_* | Where-Object Value | %{ $command += " --$($_.Name -replace "^INPUT_")=$($_.Value)" }
-      Invoke-Expression $command
+      $arguments = @()
+      $positionalInputs = @("solution")
+      Get-ChildItem env:INPUT_* | Where-Object Value | ForEach-Object {
+        $optionName = $_.Name -replace "^INPUT_"
+        if ($optionName -notin $positionalInputs) {
+          $arguments += "--$optionName=$($_.Value)"
+        }
+      }
+
+      if ($env:INPUT_solution) {
+        & jb inspectcode "$env:INPUT_solution" @arguments
+      } else {
+        & jb inspectcode @arguments
+      }
+
+      if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+      }
+
+      "report-file=${{ inputs.output }}" >> $env:GITHUB_OUTPUT
+      "report-format=${{ inputs.format }}" >> $env:GITHUB_OUTPUT
   - name: Upload SARIF file
-    if: inputs.format == 'Sarif'
-    uses: github/codeql-action/upload-sarif@v4
+    if: inputs.format == 'Sarif' && inputs.upload-sarif == 'true'
+    uses: github/codeql-action/upload-sarif@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4
     with:
       sarif_file: ${{ inputs.output }}
       category: resharper-inspectcode

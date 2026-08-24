@@ -22,26 +22,29 @@ jobs:
   inspect-code:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Annotate
         # You may pin to the exact commit or the version.
-        uses: JetBrains/ReSharper-InspectCode@v0.11
+        uses: JetBrains/ReSharper-InspectCode@v0.13
         with:
           solution: ./YourSolution.sln
+          upload-sarif: false
 
     permissions:
       security-events: write
 ```
+
+When `upload-sarif: false` is used, `security-events: write` permission is not required.
 
 ## Configuration
 
 Use [`with`](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswith) to define any action parameters:
 ```yaml
 with:
-  tool-version: 2025.2.3
+  tool-version: 2026.1.0.1
 ```
 You can use GitHub Workflow editor to get a list of all supported inputs with descriptions. 
 |Name                     |Description                                                                                                                                                                               |Default           |
@@ -49,6 +52,7 @@ You can use GitHub Workflow editor to get a list of all supported inputs with de
 |`settings`               |Path to the file to use custom settings from (default: Use R#'s solution shared settings if exists)                                                                                       |                  |
 |`output`                 |Write inspections report to specified file                                                                                                                                                |results.sarif.json|
 |`format`                 |Write inspections report in specified format [Xml, Html, Text, Sarif]                                                                                                                     |Sarif             |
+|`upload-sarif`           |Upload SARIF report to GitHub code scanning (`true`/`false`)                                                                                                                              |true              |
 |`jobs`                   |Run up to N jobs in parallel. 0 means as many as possible                                                                                                                                 |0                 |
 |`absolute-paths`         |Use absolute paths in inspections report                                                                                                                                                  |False             |
 |`no-swea`                |Force disable solution-wide analysis                                                                                                                                                      |False             |
@@ -80,4 +84,12 @@ You can use GitHub Workflow editor to get a list of all supported inputs with de
 |`build`                  |Build solution before processing                                                                                                                                                          |True              |
 |`target`                 |MsBuild target to execute before processing.                                                                                                                                              |Build             |
 |`solution`               |Solution file                                                                                                                                                                             |                  |
-|`tool-version`           |Tool Version                                                                                                                                                                              |2025.2.3          |
+|`tool-version`           |Tool Version                                                                                                                                                                              |2026.1.0.1        |
+|`dotnet-version`         |.NET SDK version used to install and run ReSharper command line tools                                                                                                                    |10.x              |
+
+## Outputs
+
+|Name            |Description                                     |
+|----------------|------------------------------------------------|
+|`report-file`   |Path to the generated inspection report file    |
+|`report-format` |Output format used for the inspection report    |
